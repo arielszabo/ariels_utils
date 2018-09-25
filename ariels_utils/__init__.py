@@ -71,3 +71,5 @@ class test_model(object):
 
         return pd.DataFrame(results,
                             columns=[f'train_{self.scoring_method}', f'test_{self.scoring_method}']).mean(axis=0)
+
+# todo: Stemmer and toknizer + word embedding 2 features
