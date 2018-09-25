@@ -12,17 +12,17 @@ class IteratorReStarter(object):
         elif isinstance(self.iterator_input_params, dict):
             return self.iterator_object_instance(**self.iterator_input_params)
 
-# todo: modelling Kfold CV with random vs stratified sampling and regression and classification selection etc.
 # todo: add my scoring func - DONE !
-# todo: add my split of data: can be traditional train_test_split and can be Kfold (if so fold number)
+# todo: determine number of cores to run on - DONE !
+# todo: modelling Kfold CV with random vs stratified sampling and regression and classification selection etc.
+# todo: add my split of data: can be traditional train_test_split and can be Kfold (if so fold needs a number)
 # todo: determine if Stratified or not
 # todo: determine if shuffle or repeated or not
-# todo: determine number of cores to run on
+
 # todo: work both for regression and classification
 from sklearn import metrics
 from sklearn.model_selection import StratifiedKFold, train_test_split
 import multiprocessing
-import os
 import pandas as pd
 
 class test_model(object):
@@ -37,6 +37,7 @@ class test_model(object):
         self.shuffle = shuffle
         self.stratify = stratify
         self.random_state = random_state
+        # todo: ask dad if its good to use getattr ?
 
     def single_model_run(self, x_train, x_test, y_train, y_test):
         self.model.fit(x_train, y_train)
@@ -65,29 +66,8 @@ class test_model(object):
 
     def run(self):
         input_to_multi = self.split_x_and_y()
-        with multiprocessing.Pool() as p:
+        with multiprocessing.Pool(self.n_jobs) as p:
             results = p.starmap(self.single_model_run, input_to_multi)
 
         return pd.DataFrame(results,
                             columns=[f'train_{self.scoring_method}', f'test_{self.scoring_method}']).mean(axis=0)
-
-
-
-
-# def test_on_train(model, X, y):
-#     input_to_multi = []
-#     start = datetime.datetime.now()
-# #     for train_index, test_index in RepeatedStratifiedKFold(n_splits=5, n_repeats=4, random_state=123).split(X, y):
-#     for train_index, test_index in StratifiedKFold(n_splits=5, random_state=123).split(X, y):
-#         X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-#         y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-#
-#         input_to_multi.append([model, X_train, X_test, y_train, y_test])
-#
-#     with multiprocessing.Pool() as p:
-#         KFold_results = p.starmap(model_run, input_to_multi)
-#
-#
-#     print(datetime.datetime.now() - start)
-#     return pd.DataFrame(KFold_results,
-#                         columns=['train_score', 'test_score']).mean(axis=0)
