@@ -5,7 +5,7 @@ import pandas as pd
 
 
 class IteratorReStarter(object):
-    def __init__(self, iterator_object_instance, iterator_input_params):
+    def __init__(self, iterator_object_instance, iterator_input_params={}):
         self.iterator_input_params = iterator_input_params
         self.iterator_object_instance = iterator_object_instance
 
@@ -18,7 +18,7 @@ class IteratorReStarter(object):
 
 # todo: add documentation
 
-class ModelTester(object):
+class MLTester(object):
     def __init__(self, estimator, x, y, scoring_method, n_jobs=1, splitting_method=None, splitting_method_params=None, groups=None):
         """
 
