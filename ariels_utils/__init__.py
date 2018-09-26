@@ -71,6 +71,32 @@ class ModelTester(object):
         self.groups = groups
 
     def single_model_run(self, x_train, x_test, y_train, y_test):
+        """
+        Fit the estimator and get the score (based on the scoring method given) on the train and test data.
+
+        :param x_train: array-like, shape (n_samples, n_features)
+
+                    Training data for fitting the model / estimator).
+
+                    where n_samples is the number of samples and n_features is the number of features.
+
+        :param x_test:array-like, shape (n_samples, n_features)
+
+                    Training data for testing the model / estimator).
+
+                    where n_samples is the number of samples and n_features is the number of features.
+
+        :param y_train: array-like, shape (n_samples,)
+
+                The target variable for fitting the model / estimator
+
+        :param y_test: array-like, shape (n_samples,)
+
+                The target variable for testing the model / estimator.
+
+        :return: Tuple
+                (train score, test score)
+        """
         self.estimator.fit(x_train, y_train)
 
         train_score = metrics.get_scorer(self.scoring_method)(self.estimator, x_train, y_train)
@@ -79,8 +105,14 @@ class ModelTester(object):
         return train_score, test_score
 
     def _split_x_and_y(self):
+        """
+        Splits the provided x and y data by the provided splitting_method.
+
+        :return: List containing train-test split of inputs.
+        """
         split_data_and_target = []
-        for train_index, test_index in self.splitting_method(**self.splitting_method_params).split(self.x, self.y, self.groups):
+        for train_index, test_index in self.splitting_method(**self.splitting_method_params).split(self.x, self.y,
+                                                                                                   self.groups):
             x_train, x_test = self.x.iloc[train_index], self.x.iloc[test_index]
             y_train, y_test = self.y.iloc[train_index], self.y.iloc[test_index]
 
@@ -89,11 +121,18 @@ class ModelTester(object):
         return split_data_and_target
 
     def run(self):
+        """
+        Run the full testing.
+        Split the given X and y based on the splitting_method.
+        Fit and estimate your given model in parallel (n_jobs).
+
+        :return: a Pandas' DataFrame
+        """
         input_to_multi = self._split_x_and_y()
         with multiprocessing.Pool(self.n_jobs) as p:
             results = p.starmap(self.single_model_run, input_to_multi)
 
         return pd.DataFrame(results,
-                            columns=[f'train_{self.scoring_method}', f'test_{self.scoring_method}']).mean(axis=0)
+                            columns=[f'train_{self.scoring_method}', f'test_{self.scoring_method}']).describe()
 
 # todo: Stemmer and toknizer + word embedding 2 features
