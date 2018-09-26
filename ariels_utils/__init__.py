@@ -21,23 +21,20 @@ class IteratorReStarter(object):
 
 # todo: work both for regression and classification
 from sklearn import metrics
-from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.model_selection import StratifiedKFold, train_test_split, RepeatedStratifiedKFold, RepeatedKFold
 import multiprocessing
 import pandas as pd
 
 class test_model(object):
-    def __init__(self, model, x, y, scoring_method, shuffle=True, stratify=None, k_folds=None, n_jobs=1, random_state=None):
+    def __init__(self, model, x, y, scoring_method, n_jobs=1, splitting_method=None, splitting_method_params=None):
         self.model = model
         self.x = x
         self.y = y
         self.scoring_method = scoring_method
         # -1 indicates we want all the cores and if we pass multiprocessing.Pool() a None it will use all the cores:
         self.n_jobs = None if n_jobs == -1 else n_jobs
-        self.k_folds = k_folds
-        self.shuffle = shuffle
-        self.stratify = stratify
-        self.random_state = random_state
-        # todo: ask dad if its good to use getattr ?
+        self.splitting_method = splitting_method
+        self.splitting_method_params = splitting_method_params
 
     def single_model_run(self, x_train, x_test, y_train, y_test):
         self.model.fit(x_train, y_train)
@@ -47,25 +44,18 @@ class test_model(object):
 
         return train_score, test_score
 
-    def split_x_and_y(self):
+    def _split_x_and_y(self):
         split_data_and_target = []
-        if self.k_folds:  # if it's not None
-            for train_index, test_index in StratifiedKFold(n_splits=self.k_folds, shuffle=self.shuffle,
-                                                           random_state=self.random_state).split(self.x, self.y):
-                x_train, x_test = self.x.iloc[train_index], self.x.iloc[test_index]
-                y_train, y_test = self.y.iloc[train_index], self.y.iloc[test_index]
+        for train_index, test_index in self.splitting_method(**self.splitting_method_params).split(self.x, self.y):
+            x_train, x_test = self.x.iloc[train_index], self.x.iloc[test_index]
+            y_train, y_test = self.y.iloc[train_index], self.y.iloc[test_index]
 
-                split_data_and_target.append([x_train, x_test, y_train, y_test])
-
-        else:
-            x_train, x_test, y_train, y_test = train_test_split(self.x, self.y, random_state=self.random_state,
-                                                                stratify=self.stratify, shuffle=self.shuffle)
             split_data_and_target.append([x_train, x_test, y_train, y_test])
 
         return split_data_and_target
 
     def run(self):
-        input_to_multi = self.split_x_and_y()
+        input_to_multi = self._split_x_and_y()
         with multiprocessing.Pool(self.n_jobs) as p:
             results = p.starmap(self.single_model_run, input_to_multi)
 
