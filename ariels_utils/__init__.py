@@ -1,4 +1,7 @@
 # This is a self made utils package for many use cases
+from sklearn import metrics
+import multiprocessing
+import pandas as pd
 
 
 class IteratorReStarter(object):
@@ -12,22 +15,52 @@ class IteratorReStarter(object):
         elif isinstance(self.iterator_input_params, dict):
             return self.iterator_object_instance(**self.iterator_input_params)
 
-# todo: add my scoring func - DONE !
-# todo: determine number of cores to run on - DONE !
-# todo: modelling Kfold CV with random vs stratified sampling and regression and classification selection etc.
-# todo: add my split of data: can be traditional train_test_split and can be Kfold (if so fold needs a number)
-# todo: determine if Stratified or not
-# todo: determine if shuffle or repeated or not
 
-# todo: work both for regression and classification
-from sklearn import metrics
-from sklearn.model_selection import StratifiedKFold, train_test_split, RepeatedStratifiedKFold, RepeatedKFold
-import multiprocessing
-import pandas as pd
+# todo: add documentation
 
-class test_model(object):
-    def __init__(self, model, x, y, scoring_method, n_jobs=1, splitting_method=None, splitting_method_params=None):
-        self.model = model
+class ModelTester(object):
+    def __init__(self, estimator, x, y, scoring_method, n_jobs=1, splitting_method=None, splitting_method_params=None, groups=None):
+        """
+
+        :param estimator: estimator object
+
+                    This is assumed to implement the scikit-learn estimator interface.
+
+        :param x: array-like, shape (n_samples, n_features)
+
+                    Training data, where n_samples is the number of samples and n_features is the number of features.
+
+        :param y: array-like, shape (n_samples,)
+
+                    The target variable for supervised learning problems.
+
+        :param scoring_method: string
+
+                    A single string to evaluate the predictions on the test set.
+
+                    see http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter for more info.
+
+        :param n_jobs: int, default=1
+
+                    Number of jobs to run in parallel.
+
+        :param splitting_method: callable
+
+                    A splitting function from scikit-learn's model_selection sub-module.
+
+                    Like LeavePOut, KFold, TimeSeriesSplit etc ...
+
+        :param splitting_method_params: dict
+
+                    Parameters for the splitting_methods provided function.
+
+                    Like n_splits, max_train_size etc ...
+
+        :param groups: array-like, with shape (n_samples,), optional, for some splitting_methods it's ignored.
+
+                    Group labels for the samples used while splitting the dataset into train/test set.
+        """
+        self.estimator = estimator
         self.x = x
         self.y = y
         self.scoring_method = scoring_method
@@ -35,18 +68,19 @@ class test_model(object):
         self.n_jobs = None if n_jobs == -1 else n_jobs
         self.splitting_method = splitting_method
         self.splitting_method_params = splitting_method_params
+        self.groups = groups
 
     def single_model_run(self, x_train, x_test, y_train, y_test):
-        self.model.fit(x_train, y_train)
+        self.estimator.fit(x_train, y_train)
 
-        train_score = metrics.get_scorer(self.scoring_method)(self.model, x_train, y_train)
-        test_score = metrics.get_scorer(self.scoring_method)(self.model, x_test, y_test)
+        train_score = metrics.get_scorer(self.scoring_method)(self.estimator, x_train, y_train)
+        test_score = metrics.get_scorer(self.scoring_method)(self.estimator, x_test, y_test)
 
         return train_score, test_score
 
     def _split_x_and_y(self):
         split_data_and_target = []
-        for train_index, test_index in self.splitting_method(**self.splitting_method_params).split(self.x, self.y):
+        for train_index, test_index in self.splitting_method(**self.splitting_method_params).split(self.x, self.y, self.groups):
             x_train, x_test = self.x.iloc[train_index], self.x.iloc[test_index]
             y_train, y_test = self.y.iloc[train_index], self.y.iloc[test_index]
 
