@@ -17,7 +17,7 @@ class IteratorReStarter(object):
 
 
 # todo: add documentation
-
+# todo: label binizer if only two labels...
 class MLTester(object):
     def __init__(self, estimator, x, y, scoring_method, n_jobs=1, splitting_method=None, splitting_method_params=None, groups=None):
         """
