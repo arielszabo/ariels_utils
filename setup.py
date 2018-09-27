@@ -8,14 +8,20 @@ def readme():
 
 setup(name='ariels_utils',
       version='0.1',
-      description='',  #todo:
+      description="""This is a module with some convenient utilities I always use in my work
+      and there is no need to always rewrite them""",
       long_description=readme(),
-      classifiers=[],  #todo:
+      classifiers=[
+          'Development Status :: 3 - Alpha',
+          'Programming Language :: Python :: 3',
+          'Topic :: Software Development :: Libraries :: Python Modules'
+          'Topic :: Utilities'
+                   ],  # todo: add more ?
       url='https://github.com/arielszabo/ariels_utils',
       author='Ariel Szabo',
       author_email='arielszabo@gmail.com',
-      license='MIT',
-      keywords='sklearn ML utils',  #todo:
+      license='MIT',  # todo: ?
+      keywords='sklearn ML utils',  # todo: ?
       packages=['ariels_utils'],
       install_requires=['sklearn', 'pandas'],
       setup_requires=["pytest-runner"],

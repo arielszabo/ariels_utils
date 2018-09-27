@@ -31,4 +31,4 @@ Or if pip is not available, easy_install should work as well:
 
 
 ----------------
-Test run by pytest
+Run tests by pytest
